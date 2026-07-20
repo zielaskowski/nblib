@@ -46,7 +46,7 @@ export -f data_to_display
 data_to_display \
 | fzf --delimiter='[ ]{2,}' \
       --ansi \
-      --with-nth=1,2,3 \
+      --with-nth=1,2 \
       --preview 'bash -c '\''preview "$1"'\'' _ {3}' \
       --border='horizontal' \
       --border-label="ctrl-c to copy code | ctrl-m to copy markdown" \
