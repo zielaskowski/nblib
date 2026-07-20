@@ -4,7 +4,7 @@ parsed data store as list of dict:
     {lev1_name:{
         file_name:{
             cell_id:"uuid",
-            content:"string",
+            markdown:"string",
             code:"string",
             kids:{lev2_name:{....}}
         },
@@ -17,7 +17,7 @@ import json
 import pathlib
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
 
 class Nblib:
@@ -33,9 +33,17 @@ class Nblib:
         """dump stored data in json format to string"""
         return json.dumps(self.lib)
 
+    def get_data(self, uuid: str, what: str) -> Union[str, None]:
+        """return markdown or code string for selected id"""
+        chapters = self.flatten()
+        content = [e[what] for e in chapters if e["uuid"] == uuid]
+        if not content:
+            return None
+        return content[0]
+
     def flatten(self) -> List:
         """convert dictionary to flat list
-        [id:lev1/lev2/lev3...,fileneme:file1, content:content,source:source]
+        [id:lev1/lev2/lev3...,fileneme:file1, markdown:markdown,source:source]
         """
         out = []
 
@@ -44,13 +52,14 @@ class Nblib:
                 for fname, data in files.items():
                     f = pathlib.Path(fname)
                     paragraph = f"{from_lev}/{lev}"
-                    id_disp = f"{paragraph} from {f.name}"
+                    id_disp = f"{paragraph}"
 
                     out.append(
                         {
                             "id_disp": id_disp,
                             "uuid": data.get("uuid", ""),
-                            "content": data.get("content", ""),
+                            "file_name": f.name,
+                            "markdown": data.get("markdown", ""),
                             "code": data.get("code", ""),
                         }
                     )
@@ -145,7 +154,7 @@ class Nblib:
                 source[0].replace("\n", ""): {
                     str(fname): {
                         "uuid": uuid,
-                        "content": "\n".join(self.__rm_eol__(source)),
+                        "markdown": "\n".join(self.__rm_eol__(source)),
                         "code": "\n".join(self.__rm_eol__(code)),
                         "kids": kids.copy(),
                     }
