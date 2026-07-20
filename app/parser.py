@@ -1,4 +1,4 @@
-"""
+"""pars
 parse ipynb json
 parsed data store as list of dict:
     {lev1_name:{
@@ -18,6 +18,7 @@ import pathlib
 import re
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
+from uuid import uuid4
 
 
 class Nblib:
@@ -27,11 +28,7 @@ class Nblib:
 
     def __init__(self) -> None:
         self.lib = {}
-        self.conf = pathlib.Path("./conf/nblib.json")
-
-    def dump(self) -> str:
-        """dump stored data in json format to string"""
-        return json.dumps(self.lib)
+        self.conf = pathlib.Path("./nblib.json")
 
     def get_data(self, uuid: str, what: str) -> Union[str, None]:
         """return markdown or code string for selected id"""
@@ -51,7 +48,7 @@ class Nblib:
             for lev, files in level_dict.items():
                 for fname, data in files.items():
                     f = pathlib.Path(fname)
-                    paragraph = f"{from_lev}/{lev}"
+                    paragraph = f"{from_lev} /{lev}"
                     id_disp = f"{paragraph}"
 
                     out.append(
@@ -89,16 +86,24 @@ class Nblib:
 
     def save(self) -> None:
         """Save data to json file"""
-        if not self.conf.parent.exists():
-            pathlib.Path.mkdir(self.conf.parent)
         with self.conf.open("w", encoding="UTF8") as f:
             json.dump(self.lib, f)
+
+    def __check_id__(self, nb: Dict) -> None:
+        """check if 'id' key present in cell
+        create one if missing"""
+        is_id = nb["cells"][0].get("id", "")
+        if not is_id:
+            for c in nb["cells"]:
+                c["id"] = uuid4().hex
 
     def parse(self, nb: Dict, name: Path):
         """
         parse notebook and store internally
         if paragraph repeat, add file name of notebook only
         """
+        # make sure we have 'id' in each cell
+        self.__check_id__(nb)
         lib, _ = self.__find_kids__(nb, start_id="", fname=name)
         self.__update_dict__(self.lib, lib)
 

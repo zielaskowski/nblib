@@ -31,7 +31,7 @@ def scan(arg: Namespace):
         lib.parse(nb_json, nb.resolve())
     lib.save()
     print(
-        "Completed scanning. You can view with `nblib_sel` or `jless ./conf/nblib.json`"
+        "Completed scanning. You can view with `nblib_fzf.sh` or `jless ./nblib.json`"
     )
 
 
@@ -41,9 +41,9 @@ def view(arg: Namespace):
         scan(arg)
     for e in lib.flatten():
         disp_cols = [
-            "\\e[1;32m" + e["id_disp"] + "\\e[0m",
+            "\\e[1;34m" + e["id_disp"] + "\\e[0m",  # bold blue
             e["file_name"],
-            e["uuid"],
+            e["uuid"] + "\n",
         ]  # color
         print("\t".join(disp_cols))
 
